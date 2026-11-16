@@ -30,7 +30,7 @@ It also creates the `deploy`, `publisher` and `nciadmin` accounts, the folders u
 Download it, read it, test it with a dry run, then run it as root:
 
 ```bash
-wget https://raw.githubusercontent.com/jaystar1138/pxe-debian-setup/v1.0.2/pxe-setup.sh
+wget https://raw.githubusercontent.com/jaystar1138/pxe-debian-setup/v1.1.0/pxe-setup.sh
 less pxe-setup.sh
 chmod +x pxe-setup.sh
 ./pxe-setup.sh --dry-run
@@ -90,4 +90,4 @@ You should see `DHCPOFFER` and the shim being sent. The full log of the setup ru
 
 ## Licence
 
-[PolyForm Internal Use License 1.0.0](LICENSE). You may use and modify this script for the internal business operations of you and your company. You may not distribute it, publish it, or share copies or modified versions with anyone outside your company.
+[MIT](LICENSE). Use, copy, modify and share it freely. Earlier tags up to `v1.0.2` were released under the PolyForm Internal Use License 1.0.0; from `v1.1.0` onward the licence is MIT.
