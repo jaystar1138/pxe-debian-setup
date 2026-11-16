@@ -6,3 +6,4 @@ BCD
 boot.sdi
 pxe-setup-passwords.txt
 *.bak-*
+*.iso

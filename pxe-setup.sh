@@ -23,6 +23,7 @@ DEPLOY_IP="10.10.10.1"
 DEPLOY_PREFIX="24"
 DHCP_START="10.10.10.100"
 DHCP_END="10.10.10.199"
+ADMIN_USER="pxeadmin"
 DEPLOY_NIC=""
 INET_NIC=""
 BOOT_FILES_DIR="/root"
@@ -49,6 +50,7 @@ Usage: $0 [options]
 
   --deploy-nic NAME     the card that faces the PCs to be imaged (default: auto-detect)
   --inet-nic NAME       the card that reaches your office/internet (default: the default-route card)
+  --admin-user NAME     the login/Samba administrator account (default: pxeadmin; created if missing)
   --boot-files DIR      folder holding ipxe-shim.efi ipxe.efi wimboot BCD boot.sdi boot.wim (default: /root)
   --data-disk DEVICE    OPTIONAL: format this empty disk (ERASES IT) and mount it at /srv
   --prompt-passwords    ask for the Samba passwords instead of generating them
@@ -65,6 +67,7 @@ while [[ $# -gt 0 ]]; do
     --deploy-nic)       DEPLOY_NIC="${2:-}"; shift 2 ;;
     --inet-nic)         INET_NIC="${2:-}"; shift 2 ;;
     --boot-files)       BOOT_FILES_DIR="${2:-}"; shift 2 ;;
+    --admin-user)       ADMIN_USER="${2:-}"; shift 2 ;;
     --data-disk)        DATA_DISK="${2:-}"; shift 2 ;;
     --prompt-passwords) PROMPT_PASSWORDS=1; shift ;;
     --reset-passwords)  RESET_PASSWORDS=1; shift ;;
@@ -75,9 +78,14 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
+[[ "$ADMIN_USER" =~ ^[a-z][a-z0-9_-]{0,30}$ ]] || die "--admin-user must be a simple lower-case account name (letters, digits, - and _)."
+case "$ADMIN_USER" in deploy|publisher|root) die "--admin-user cannot be '$ADMIN_USER'." ;; esac
+
 # keep a log of everything (not in dry-run)
 if [[ $DRY_RUN -eq 0 && $EUID -eq 0 ]]; then
   mkdir -p "$(dirname "$LOG_FILE")"
+  # the log holds the generated Samba passwords, so keep it private
+  ( umask 077; touch "$LOG_FILE" ); chmod 600 "$LOG_FILE"
   exec > >(tee -a "$LOG_FILE") 2>&1
   echo "--- pxe-setup started $(date -Is) ---"
 fi
@@ -175,7 +183,7 @@ if [[ $DRY_RUN -eq 1 ]]; then
   [[ -n "$DATA_DISK" ]] && info "- format $DATA_DISK (ERASING it) and mount it at /srv"
   info "- give $DEPLOY_NIC the address ${DEPLOY_IP}/${DEPLOY_PREFIX}"
   info "- apt install dnsmasq nginx samba curl"
-  info "- create accounts deploy, publisher, nciadmin and the /srv folders"
+  info "- create accounts deploy, publisher, $ADMIN_USER and the /srv folders"
   info "- copy the boot files and write boot.ipxe"
   info "- write the dnsmasq, nginx and Samba configs; turn off nmbd and samba-ad-dc"
   info "- start the services and check them"
@@ -242,7 +250,7 @@ systemctl stop dnsmasq 2>/dev/null || true
 
 # ---------------------------------------------------------------- 5. accounts
 step "Creating accounts"
-for u in deploy publisher nciadmin; do
+for u in deploy publisher "$ADMIN_USER"; do
   if id "$u" >/dev/null 2>&1; then ok "$u already exists"
   else useradd -m -s /usr/sbin/nologin "$u" && ok "created $u (no shell login)"; fi
 done
@@ -252,7 +260,7 @@ have_smb() { pdbedit -L 2>/dev/null | cut -d: -f1 | grep -x >/dev/null "$1"; }
 declare -A PW
 [[ -f "$PASSWORD_FILE" ]] || { : > "$PASSWORD_FILE"; }
 chmod 600 "$PASSWORD_FILE"
-for u in deploy publisher nciadmin; do
+for u in deploy publisher "$ADMIN_USER"; do
   if have_smb "$u" && [[ $RESET_PASSWORDS -eq 0 ]]; then
     ok "$u: Samba password already set, kept (use --reset-passwords to change it)"
     continue
@@ -366,7 +374,7 @@ put_file /etc/samba/smb.conf 644 <<EOF
 [logs]
    path = /srv/logs
    read only = no
-   valid users = deploy publisher nciadmin
+   valid users = deploy publisher $ADMIN_USER
    create mask = 0664
    directory mask = 2775
    hosts allow = 10.10.10.0/24
@@ -374,8 +382,8 @@ put_file /etc/samba/smb.conf 644 <<EOF
 [publish]
    path = /srv/images
    read only = no
-   valid users = publisher nciadmin
-   admin users = nciadmin
+   valid users = publisher $ADMIN_USER
+   admin users = $ADMIN_USER
    create mask = 0644
    directory mask = 0755
    map archive = no
@@ -384,8 +392,8 @@ put_file /etc/samba/smb.conf 644 <<EOF
 [boot]
    path = /srv/http/winpe
    read only = no
-   valid users = publisher nciadmin
-   admin users = nciadmin
+   valid users = publisher $ADMIN_USER
+   admin users = $ADMIN_USER
    hosts allow = 10.10.10.0/24
 EOF
 testparm -s >/dev/null 2>&1 && ok "Samba config is valid" || die "Samba config check failed. Run: testparm -s"
@@ -418,7 +426,7 @@ if curl -s -m 3 -o /dev/null "http://$(ip -4 -br addr show dev "$INET_NIC" | awk
 step "Summary"
 if [[ $FAIL -eq 0 ]]; then printf '  %sThe server is set up.%s\n' "$G" "$N"; else printf '  %sSet up, but some checks above need attention.%s\n' "$Y" "$N"; fi
 printf '\n  Samba passwords (also in %s):\n' "$PASSWORD_FILE"
-for u in deploy publisher nciadmin; do printf '    %-10s %s\n' "$u" "${PW[$u]:-(unchanged from an earlier run)}"; done
+for u in deploy publisher "$ADMIN_USER"; do printf '    %-10s %s\n' "$u" "${PW[$u]:-(unchanged from an earlier run)}"; done
 cat <<EOF
 
   Still to do:

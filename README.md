@@ -15,7 +15,7 @@ The server never routes between the two cards, so imaged PCs cannot reach the of
 | nginx | HTTP: boot script, WinPE files, images, drivers, apps, log uploads | `10.10.10.1:80` |
 | Samba | SMB shares `deploy`, `publish`, `logs`, `boot` | deploy NIC only |
 
-It also creates the `deploy`, `publisher` and `nciadmin` accounts, the folders under `/srv`, and the config files. It then starts the services and checks that nothing is exposed on the office card.
+It also creates the `deploy`, `publisher` and an admin account (default `pxeadmin`, change with `--admin-user`), the folders under `/srv`, and the config files. It then starts the services and checks that nothing is exposed on the office card.
 
 ## Before you run it
 
@@ -30,7 +30,7 @@ It also creates the `deploy`, `publisher` and `nciadmin` accounts, the folders u
 Download it, read it, test it with a dry run, then run it as root:
 
 ```bash
-wget https://raw.githubusercontent.com/jaystar1138/pxe-debian-setup/v1.1.0/pxe-setup.sh
+wget https://raw.githubusercontent.com/jaystar1138/pxe-debian-setup/v1.2.0/pxe-setup.sh
 less pxe-setup.sh
 chmod +x pxe-setup.sh
 ./pxe-setup.sh --dry-run
@@ -39,12 +39,50 @@ chmod +x pxe-setup.sh
 
 `wget` is already on a fresh Debian install (`curl` is not). Do not pipe the script straight into `bash`: it runs as root, so read it first.
 
+## Unattended install (optional)
+
+Want to skip the Debian installer questions as well? `unattended/build-unattended-iso.sh` builds a Debian 13 installer ISO that installs itself with no input (like a Windows `autounattend.xml`) and runs `pxe-setup.sh` on first boot.
+
+> **The ISO erases a disk without asking.** Boot it only on a machine you mean to wipe. After a short countdown (10 s by default) the unattended entry starts by itself; pick another entry in the menu to cancel.
+
+Build it on any Linux machine (Debian, Ubuntu, WSL):
+
+```bash
+sudo apt install xorriso cpio openssl wget
+wget https://raw.githubusercontent.com/jaystar1138/pxe-debian-setup/v1.2.0/unattended/build-unattended-iso.sh
+chmod +x build-unattended-iso.sh
+./build-unattended-iso.sh --boot-files ~/boot-files
+```
+
+It asks for the root and admin passwords (only hashes go on the ISO), downloads and checks the Debian netinst ISO, and writes `pxe-debian-unattended.iso`. Write that to a USB stick (Balena Etcher, or Rufus in "DD mode"), plug the **internet** cable into the server, leave the deploy cable out, and boot from the stick. The server installs, powers off, and on its first boot runs the setup. Plug in the deploy cable and read `/etc/motd` when you log in.
+
+Every choice is an option:
+
+| Choice | Options |
+| --- | --- |
+| Boot files | `--boot-files DIR` (copied onto the ISO), `--boot-files-url URL` (downloaded on first boot), or neither (set up without them) |
+| Disk to erase | `--disk smallest` (default, with `--disk-min-gb` / `--disk-max-gb` size guard), `--disk /dev/sdX`, or `--disk ask` |
+| Passwords | `--passwords prompt` (default), `generate`, or `hash-file` with `--hash-file FILE` |
+| Admin account | `--admin-user NAME` (default `pxeadmin`), `--ssh-key FILE` to allow a key |
+| After the install | `--finish poweroff` (default) or `reboot`; `--no-first-boot` to install Debian only |
+| Setup | `--setup-args "..."` passed to `pxe-setup.sh`, `--script FILE`, `--script-url URL` |
+| Machine | `--hostname`, `--timezone`, `--keyboard`, `--locale`, `--mirror`, `--menu-timeout` |
+
+Notes:
+
+- With `--disk smallest` the installer never picks the USB stick it started from or a removable disk, and it stops without erasing anything if the smallest disk is outside the size range.
+  When it stops, the screen stays on "Starting up the partitioner" and the machine powers off after 60 seconds. The reason is in the installer log: press Alt+F4 during that minute.
+- `--finish reboot` can start the install again if the USB stick is still plugged in. The default, power off, avoids that.
+- If the first-boot setup fails, `/etc/motd` and `/root/PXE-SETUP-RESULT.txt` say so, and the logs are `/var/log/pxe-firstboot.log` and `/var/log/pxe-setup.log`. It retries on the next two boots, then stops. You can always run `/root/pxe-setup.sh` by hand.
+- Do not put the ISO in a public place if you used `--boot-files`: it then contains your boot files.
+
 ## Options
 
 | Option | Meaning |
 | --- | --- |
 | `--deploy-nic NAME` | the card facing the PCs (default: the one spare physical card) |
 | `--inet-nic NAME` | the card facing the office (default: the one with the default route) |
+| `--admin-user NAME` | the administrator account: SSH login and Samba admin (default: `pxeadmin`) |
 | `--boot-files DIR` | where the six boot files are (default: `/root`) |
 | `--data-disk DEVICE` | format an **empty** disk (erases it) and mount it at `/srv` |
 | `--prompt-passwords` | type the Samba passwords instead of generating them |
