@@ -30,14 +30,14 @@ It also creates the `deploy`, `publisher` and `nciadmin` accounts, the folders u
 Download it, read it, test it with a dry run, then run it as root:
 
 ```bash
-curl -fsSLO https://raw.githubusercontent.com/jaystar1138/pxe-debian-setup/v1.0/pxe-setup.sh
+wget https://raw.githubusercontent.com/jaystar1138/pxe-debian-setup/v1.0.1/pxe-setup.sh
 less pxe-setup.sh
 chmod +x pxe-setup.sh
 ./pxe-setup.sh --dry-run
 ./pxe-setup.sh
 ```
 
-Do not pipe it straight into `bash`. It runs as root, so read it first.
+`wget` is already on a fresh Debian install (`curl` is not). Do not pipe the script straight into `bash`: it runs as root, so read it first.
 
 ## Options
 

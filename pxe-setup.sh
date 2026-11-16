@@ -170,13 +170,13 @@ else warn "boot files not found in $BOOT_FILES_DIR: ${missing[*]}"; info "the se
 
 if [[ $DRY_RUN -eq 1 ]]; then
   step "Dry run: what would happen"
-  [[ -n "$DATA_DISK" ]] && info "1. format $DATA_DISK (ERASING it) and mount it at /srv"
-  info "2. give $DEPLOY_NIC the address ${DEPLOY_IP}/${DEPLOY_PREFIX}"
-  info "3. apt install dnsmasq nginx samba curl"
-  info "4. create accounts deploy, publisher, nciadmin and the /srv folders"
-  info "5. copy the boot files and write boot.ipxe"
-  info "6. write the dnsmasq, nginx and Samba configs; turn off nmbd and samba-ad-dc"
-  info "7. start the services and check them"
+  [[ -n "$DATA_DISK" ]] && info "- format $DATA_DISK (ERASING it) and mount it at /srv"
+  info "- give $DEPLOY_NIC the address ${DEPLOY_IP}/${DEPLOY_PREFIX}"
+  info "- apt install dnsmasq nginx samba curl"
+  info "- create accounts deploy, publisher, nciadmin and the /srv folders"
+  info "- copy the boot files and write boot.ipxe"
+  info "- write the dnsmasq, nginx and Samba configs; turn off nmbd and samba-ad-dc"
+  info "- start the services and check them"
   printf '\nNothing was changed. Run again without --dry-run to apply.\n'
   exit 0
 fi
@@ -294,7 +294,7 @@ initrd -n boot.sdi http://${DEPLOY_IP}/winpe/boot.sdi boot.sdi
 initrd -n boot.wim http://${DEPLOY_IP}/winpe/boot.wim boot.wim
 boot
 EOF
-[[ -f /srv/images/list.json ]] || { echo '[]' > /srv/images/list.json; ok "placeholder /srv/images/list.json (run update-image-list.sh later)"; }
+[[ -f /srv/images/list.json ]] || { echo '[]' > /srv/images/list.json; ok "placeholder /srv/images/list.json (replace it with your image list later)"; }
 chown -R publisher /srv/http/winpe
 chmod -R a+rX /srv/http /srv/tftp /srv/images
 
