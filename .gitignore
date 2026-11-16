@@ -1,0 +1,8 @@
+# boot files are large and may contain licensed content
+*.wim
+*.efi
+wimboot
+BCD
+boot.sdi
+pxe-setup-passwords.txt
+*.bak-*
