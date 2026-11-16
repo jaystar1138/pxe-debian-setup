@@ -30,7 +30,7 @@ It also creates the `deploy`, `publisher` and `nciadmin` accounts, the folders u
 Download it, read it, test it with a dry run, then run it as root:
 
 ```bash
-wget https://raw.githubusercontent.com/jaystar1138/pxe-debian-setup/v1.0.1/pxe-setup.sh
+wget https://raw.githubusercontent.com/jaystar1138/pxe-debian-setup/v1.0.2/pxe-setup.sh
 less pxe-setup.sh
 chmod +x pxe-setup.sh
 ./pxe-setup.sh --dry-run
@@ -87,3 +87,7 @@ You should see `DHCPOFFER` and the shim being sent. The full log of the setup ru
 | PC gets no address | Check the cable is on the deploy NIC; read `journalctl -u dnsmasq`. |
 | PC loads the shim then stops | Try once with Secure Boot off; confirm both `.efi` files are in `/srv/tftp`. |
 | Images list is empty | `/srv/images/list.json` is a placeholder (`[]`) until you replace it with your image list. |
+
+## Licence
+
+[PolyForm Internal Use License 1.0.0](LICENSE). You may use and modify this script for the internal business operations of you and your company. You may not distribute it, publish it, or share copies or modified versions with anyone outside your company.

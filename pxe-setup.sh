@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# SPDX-License-Identifier: PolyForm-Internal-Use-1.0.0
+# Copyright 2026 jaystar1138. Licensed for internal business use only; see the LICENSE file. Do not redistribute.
 #
 # pxe-setup.sh - turns a fresh Debian 13 install with two network cards into a PXE deployment server.
 #
