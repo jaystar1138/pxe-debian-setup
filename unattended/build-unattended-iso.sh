@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: MIT
-# Copyright (c) 2026 jaystar1138. Released under the MIT licence; see the LICENSE file.
+# Copyright (c) 2026 jaystar1138. Released under the MIT license; see the LICENSE file.
 #
 # build-unattended-iso.sh - builds a Debian 13 installer ISO that installs itself with no questions
 # (like a Windows autounattend.xml) and then runs pxe-setup.sh on first boot.

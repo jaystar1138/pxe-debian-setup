@@ -126,11 +126,11 @@ You should see `DHCPOFFER` and the shim being sent. The full log of the setup ru
 | PC loads the shim then stops | Try once with Secure Boot off; confirm both `.efi` files are in `/srv/tftp`. |
 | Images list is empty | `/srv/images/list.json` is a placeholder (`[]`) until you replace it with your image list. |
 
-## Licence
+## License
 
-The code in this repository (`pxe-setup.sh`, `unattended/build-unattended-iso.sh` and this README) is released under the [MIT licence](LICENSE). Use, copy, modify and share it freely.
+The code in this repository (`pxe-setup.sh`, `unattended/build-unattended-iso.sh` and this README) is released under the [MIT license](LICENSE). Use, copy, modify and share it freely.
 
-MIT covers this repository only. Everything else keeps its own licence:
+MIT covers this repository only. Everything else keeps its own license:
 
-- **Boot files** (`ipxe-shim.efi`, `ipxe.efi`, `wimboot`, `BCD`, `boot.sdi`, `boot.wim`) are not part of this repository. iPXE and wimboot have their own open-source licences. The Windows files (`BCD`, `boot.sdi`, `boot.wim`) come from Microsoft's Windows ADK or Windows media and fall under your Microsoft licence terms. Check that you may redistribute them before sharing a server image or an ISO built with `--boot-files`.
-- **Debian and the installed packages** (dnsmasq, nginx, Samba and others) keep their own licences. The unattended builder downloads the Debian netinst ISO and repacks it, so Debian's licences apply to the result.
+- **Boot files** (`ipxe-shim.efi`, `ipxe.efi`, `wimboot`, `BCD`, `boot.sdi`, `boot.wim`) are not part of this repository. iPXE and wimboot have their own open-source licenses. The Windows files (`BCD`, `boot.sdi`, `boot.wim`) come from Microsoft's Windows ADK or Windows media and fall under your Microsoft license terms. Check that you may redistribute them before sharing a server image or an ISO built with `--boot-files`.
+- **Debian and the installed packages** (dnsmasq, nginx, Samba and others) keep their own licenses. The unattended builder downloads the Debian netinst ISO and repacks it, so Debian's licenses apply to the result.
